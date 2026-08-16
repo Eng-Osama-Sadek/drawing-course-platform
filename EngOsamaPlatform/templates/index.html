@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كورس الرسم الهندسي | م. أسامة صادق</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <img src="https://via.placeholder.com/150/0B3C5D/FFD662?text=OS" alt="م. أسامة صادق" class="profile-img">
+        <h1>كورس الرسم الهندسى لطلبة إعدادى كلية الهندسة</h1>
+        <p>إعداد وتنفيذ وإدارة: <strong>مهندس / أسامة صادق</strong></p>
+    </header>
+
+    <div class="container">
+        <section class="course-details">
+            <h2>أهداف ومحتوى الكورس</h2>
+            <ul>
+                <li>تعلم الأساسيات ورسم العمليات الهندسيه</li>
+                <li>رسم المنظور الايزومترى مع شرح تمارين</li>
+                <li>رسم المساقط الثلاثه مع شرح تمارين</li>
+                <li>القطاعات والتهشير مع شرح تمارين</li>
+                <li>رسم الاستيل والقطاعات والتهشير مع تمارين</li>
+                <li>حل تمارين المنهج ومراجعة قبل الامتحان</li>
+            </ul>
+            <p><strong>عدد المحاضرات:</strong> من 25 إلى 30 محاضرة تقريباً (شرح وحل 70% من التمارين).</p>
+            <p><strong>الفئة المستهدفة:</strong> إعدادى هندسة، فنون جميلة وتطبيقية، المعاهد الفنية الصناعية.</p>
+        </section>
+
+        <section class="payment-info">
+            <h2>تفاصيل الاشتراك والدفع</h2>
+            <p>سعر الكورس: 18,000 إلى 20,000 جنيه (سعر المحاضرة 600 جنيه تقريباً).</p>
+            <p style="color: var(--accent-yellow); font-weight: bold;">* يتم دفع نصف المبلغ مقدماً لضمان الجدية قبل البدء.</p>
+            <h3>طريقة الدفع:</h3>
+            <p>فودافون كاش على الرقم: <strong>+201024519686</strong></p>
+            <br>
+            <a href="https://wa.me/201068134714" class="btn" target="_blank">تواصل الآن عبر واتساب لتحديد موعد</a>
+        </section>
+
+        <!-- قائمة المحاضرات بأسلوب كروت يوتيوب المحمية -->
+        <section class="content-section">
+            <h2>مكتبة المحاضرات المسجلة والملفات (المحمية)</h2>
+            <p>لا يمكنك فتح الفيديوهات أو مشاهدتها إلا بعد سداد الرسوم وتأكيد الاشتراك من الإدارة.</p>
+            
+            <div class="video-grid">
+                {% for file in files %}
+                <div class="video-card">
+                    <div class="thumbnail-box">
+                        <span class="badge-protected">🔒 محتوى محمي</span>
+                        <span class="badge-duration">{{ file.duration or 'محاضرة' }}</span>
+                        <div class="play-icon">▶</div>
+                    </div>
+                    
+                    <div class="video-info">
+                        <div>
+                            <div class="video-title">{{ file.name }}</div>
+                            <div class="video-meta">النوع: {{ file.type }} | خاص بالطلاب المسجلين</div>
+                        </div>
+                        <button class="btn" onclick="checkAccessAndPlay('{{ file.url }}', '{{ file.name }}')">مشاهدة المحاضرة</button>
+                    </div>
+                </div>
+                {% else %}
+                <p>لا توجد ملفات أو محاضرات متاحة حالياً.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <footer>
+            <h3>طرق التواصل:</h3>
+            <p>واتساب: +201068134714 | إيميل: osamasadekadam321@gmail.com</p>
+            <p>أرق التحيات وأطيب الأمنيات بالتوفيق للجميع.</p>
+        </footer>
+    </div>
+
+    <!-- نافذة المشغل المحمي للطلاب مع العلامة المائية -->
+    <div id="videoModal" class="video-modal-overlay">
+        <div class="video-modal-content">
+            <button class="close-modal-btn" onclick="closeVideoModal()">X</button>
+            <h3 id="modalVideoTitle" style="margin-bottom: 10px; font-size: 16px; color: var(--accent-yellow);"></h3>
+            
+            <div class="video-container">
+                <!-- العلامة المائية الشفافة لحماية الفيديو من التصوير -->
+                <div id="watermarkText" class="watermark">خاص بالمنصة | م. أسامة صادق</div>
+                
+                <video id="protectedPlayer" controls controlsList="nodownload" oncontextmenu="return false;">
+                    <source id="videoSource" src="" type="video/mp4">
+                    متصفحك لا يدعم تشغيل الفيديو.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة المساعد الذكي للطالب -->
+    <div id="chat-widget">
+        <div id="chat-header" onclick="toggleChat()">
+            💬 المساعد الذكي (اسألني عن الرسم الهندسي)
+        </div>
+        <div id="chat-body" style="display: none;">
+            <div id="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="اكتب سؤالك هنا..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="btn" style="padding: 6px 12px;">إرسال</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // التحقق من الصلاحية والتأكد من تفعيل الاشتراك
+        function checkAccessAndPlay(videoUrl, videoTitle) {
+            // هنا يمكنك ربط شرط القبول مع متغيرات السيرفر مثل (is_paid)
+            {% if is_paid %}
+                openProtectedVideo(videoUrl, videoTitle);
+            {% else %}
+                alert('يرجى سداد الرسوم وتأكيد الاشتراك لتفعيل مشاهدة المحاضرات.');
+            {% endif %}
+        }
+
+        // فتح نافذة مشغل الفيديو المحمي
+        function openProtectedVideo(videoUrl, videoTitle) {
+            const modal = document.getElementById('videoModal');
+            const player = document.getElementById('protectedPlayer');
+            const source = document.getElementById('videoSource');
+            const titleElem = document.getElementById('modalVideoTitle');
+
+            titleElem.innerText = videoTitle || 'مشاهدة المحاضرة';
+            source.src = videoUrl || '';
+            player.load();
+            modal.style.display = 'flex';
+            player.play();
+        }
+
+        // إغلاق النافذة المنبثقة
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const player = document.getElementById('protectedPlayer');
+            player.pause();
+            modal.style.display = 'none';
+        }
+
+        // المساعد الذكي
+        function toggleChat() {
+            const body = document.getElementById('chat-body');
+            body.style.display = (body.style.display === 'none' || body.style.display === '') ? 'flex' : 'none';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessageToChat('أنت', message, 'user-msg');
+            input.value = '';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                const data = await response.json();
+                addMessageToChat('المساعد', data.reply, 'bot-msg');
+            } catch (error) {
+                addMessageToChat('نظام', 'خطأ في الاتصال بالخادم.', 'bot-msg');
+            }
+        }
+
+        function addMessageToChat(sender, text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${className}`;
+            msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+    </script>
+</body>
+</html>
