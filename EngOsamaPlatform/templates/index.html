@@ -108,20 +108,22 @@
     </div>
 
     <script>
+        // تحويل متغير Jinja2 من السيرفر إلى Boolean صريح في الجافاسكريبت
+        const isPaidUser = {{ 'true' if is_paid else 'false' }};
+
         // التحقق من الصلاحية والتأكد من تفعيل الاشتراك
         function checkAccessAndPlay(videoUrl, videoTitle) {
-            // هنا يمكنك ربط شرط القبول مع متغيرات السيرفر مثل (is_paid)
-            {% if is_paid %}
+            if (isPaidUser) {
                 openProtectedVideo(videoUrl, videoTitle);
-            {% else %}
+            } else {
                 alert('يرجى سداد الرسوم وتأكيد الاشتراك لتفعيل مشاهدة المحاضرات.');
-            {% endif %}
+            }
         }
 
         // فتح نافذة مشغل الفيديو المحمي
         function openProtectedVideo(videoUrl, videoTitle) {
             const modal = document.getElementById('videoModal');
-            const player = document.getElementById('protectedPlayer');
+            player = document.getElementById('protectedPlayer');
             const source = document.getElementById('videoSource');
             const titleElem = document.getElementById('modalVideoTitle');
 

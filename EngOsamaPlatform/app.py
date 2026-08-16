@@ -12,6 +12,7 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    session,
     url_for,
 )
 
@@ -71,7 +72,9 @@ def get_file_category(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html', files=files_db)
+    # التحقق من حالة الدفع من الجلسة الحالية أو إذا كان هناك أي طالب مفعل في القائمة
+    is_paid = session.get('is_paid', False) or any(u.get('paid', False) for u in users_db)
+    return render_template('index.html', files=files_db, is_paid=is_paid)
 
 
 # مسار استعراض وتحميل الملفات المرفوعة محلياً
@@ -155,6 +158,7 @@ def approve_user(phone):
         if user['phone'] == phone:
             user['paid'] = True
             user['status'] = 'approved'
+            session['is_paid'] = True  # تفعيل حالة الدفع للجلسة فور القبول
     flash(f'تم تفعيل الحساب للطالب صاحب الرقم {phone}')
     return redirect(url_for('admin'))
 
