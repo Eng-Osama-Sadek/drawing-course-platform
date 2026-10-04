@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 import urllib.error
 import urllib.request
 from urllib.parse import quote
@@ -16,10 +17,10 @@ from flask import (
     url_for,
 )
 
-# تحميل المتغيرات السرية من ملف .env
+# ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…ØªØºÙŠØ±Ø§Øª Ø§Ù„Ø³Ø±ÙŠØ© Ù…Ù† Ù…Ù„Ù .env
 load_dotenv()
 
-# محاولة استيراد دالة الرفع إلى Google Drive إذا كان ملف الربط موجوداً
+# Ù…Ø­Ø§ÙˆÙ„Ø© Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø¯Ø§Ù„Ø© Ø§Ù„Ø±ÙØ¹ Ø¥Ù„Ù‰ Google Drive Ø¥Ø°Ø§ ÙƒØ§Ù† Ù…Ù„Ù Ø§Ù„Ø±Ø¨Ø· Ù…ÙˆØ¬ÙˆØ¯Ø§Ù‹
 try:
     from drive_uploader import upload_file_to_drive
 
@@ -29,31 +30,33 @@ except ImportError:
 
 app = Flask(__name__)
 
-# قراءة مفتاح الأمان ومفتاح Gemini مع الحفاظ على القيم الافتراضية
+# Ù‚Ø±Ø§Ø¡Ø© Ù…ÙØªØ§Ø­ Ø§Ù„Ø£Ù…Ø§Ù† ÙˆÙ…ÙØªØ§Ø­ Gemini Ù…Ø¹ Ø§Ù„Ø­ÙØ§Ø¸ Ø¹Ù„Ù‰ Ø§Ù„Ù‚ÙŠÙ… Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ©
 app.secret_key = os.getenv('SECRET_KEY', 'super_secret_key_for_eng_osama')
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'ضع_مفتاح_جوجل_هنا')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'Ø¶Ø¹_Ù…ÙØªØ§Ø­_Ø¬ÙˆØ¬Ù„_Ù‡Ù†Ø§')
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 ميجابايت
+# âœ… Ø§Ø³ØªØ®Ø¯Ø§Ù… /tmp Ø¹Ù„Ù‰ Vercel (Ø§Ù„Ù…Ø³Ø§Ø± Ø§Ù„ÙˆØ­ÙŠØ¯ Ø§Ù„Ù‚Ø§Ø¨Ù„ Ù„Ù„ÙƒØªØ§Ø¨Ø©)
+UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', tempfile.gettempdir())
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 Ù…ÙŠØ¬Ø§Ø¨Ø§ÙŠØª
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# âœ… Ù„Ø§ Ù†Ø³ØªØ®Ø¯Ù… os.makedirs â€” /tmp Ù…ÙˆØ¬ÙˆØ¯ Ù…Ø³Ø¨Ù‚Ø§Ù‹
 
 users_db = [
-    {'name': 'طالب تجريبي', 'phone': '010000000', 'paid': False, 'status': 'pending'}
+    {'name': 'Ø·Ø§Ù„Ø¨ ØªØ¬Ø±ÙŠØ¨ÙŠ', 'phone': '010000000', 'paid': False, 'status': 'pending'}
 ]
 
-# قائمة الملفات المسجلة والمرفوعة
+# Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ù„ÙØ§Øª Ø§Ù„Ù…Ø³Ø¬Ù„Ø© ÙˆØ§Ù„Ù…Ø±ÙÙˆØ¹Ø©
 files_db = [
     {
-        'name': 'محاضرة_المنظور_الايزومتري.mp4',
+        'name': 'Ù…Ø­Ø§Ø¶Ø±Ø©_Ø§Ù„Ù…Ù†Ø¸ÙˆØ±_Ø§Ù„Ø§ÙŠØ²ÙˆÙ…ØªØ±ÙŠ.mp4',
         'type': 'video',
-        'category': 'فيديو',
+        'category': 'ÙÙŠØ¯ÙŠÙˆ',
         'url': '#',
     },
     {
-        'name': 'تمارين_القطاعات_والتهشير.pdf',
+        'name': 'ØªÙ…Ø§Ø±ÙŠÙ†_Ø§Ù„Ù‚Ø·Ø§Ø¹Ø§Øª_ÙˆØ§Ù„ØªÙ‡Ø´ÙŠØ±.pdf',
         'type': 'pdf',
-        'category': 'مستند',
+        'category': 'Ù…Ø³ØªÙ†Ø¯',
         'url': '#',
     },
 ]
@@ -72,12 +75,10 @@ def get_file_category(filename):
 
 @app.route('/')
 def index():
-    # التحقق من حالة الدفع من الجلسة الحالية أو إذا كان هناك أي طالب مفعل في القائمة
     is_paid = session.get('is_paid', False) or any(u.get('paid', False) for u in users_db)
     return render_template('index.html', files=files_db, is_paid=is_paid)
 
 
-# مسار استعراض وتحميل الملفات المرفوعة محلياً
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
@@ -105,11 +106,11 @@ def admin():
 
                 cat = get_file_category(file.filename)
                 if cat == 'video':
-                    cat_label = 'فيديو'
+                    cat_label = 'ÙÙŠØ¯ÙŠÙˆ'
                 elif cat == 'image':
-                    cat_label = 'صورة'
+                    cat_label = 'ØµÙˆØ±Ø©'
                 else:
-                    cat_label = 'مستند'
+                    cat_label = 'Ù…Ø³ØªÙ†Ø¯'
 
                 files_db.append({
                     'name': file.filename,
@@ -117,12 +118,11 @@ def admin():
                     'category': cat_label,
                     'url': drive_url if drive_url else f'/uploads/{file.filename}',
                 })
-                flash('تم رفع الملف بنجاح!')
+                flash('ØªÙ… Ø±ÙØ¹ Ø§Ù„Ù…Ù„Ù Ø¨Ù†Ø¬Ø§Ø­!')
 
     return render_template('admin.html', users=users_db, files=files_db)
 
 
-# استقبال فيديو الكاميرا أو الشاشة المباشر من لوحة التحكم
 @app.route('/upload_recorded_video', methods=['POST'])
 def upload_recorded_video():
     if 'video' in request.files:
@@ -145,11 +145,11 @@ def upload_recorded_video():
         files_db.append({
             'name': filename,
             'type': 'video',
-            'category': 'فيديو مسجل',
+            'category': 'ÙÙŠØ¯ÙŠÙˆ Ù…Ø³Ø¬Ù„',
             'url': drive_url if drive_url else f'/uploads/{filename}',
         })
-        return jsonify({'status': 'success', 'message': 'تم حفظ الفيديو بنجاح!'})
-    return jsonify({'status': 'error', 'message': 'فشل رفع الفيديو'}), 400
+        return jsonify({'status': 'success', 'message': 'ØªÙ… Ø­ÙØ¸ Ø§Ù„ÙÙŠØ¯ÙŠÙˆ Ø¨Ù†Ø¬Ø§Ø­!'})
+    return jsonify({'status': 'error', 'message': 'ÙØ´Ù„ Ø±ÙØ¹ Ø§Ù„ÙÙŠØ¯ÙŠÙˆ'}), 400
 
 
 @app.route('/approve/<phone>')
@@ -158,44 +158,38 @@ def approve_user(phone):
         if user['phone'] == phone:
             user['paid'] = True
             user['status'] = 'approved'
-            session['is_paid'] = True  # تفعيل حالة الدفع للجلسة فور القبول
-    flash(f'تم تفعيل الحساب للطالب صاحب الرقم {phone}')
+            session['is_paid'] = True
+    flash(f'ØªÙ… ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù„Ù„Ø·Ø§Ù„Ø¨ ØµØ§Ø­Ø¨ Ø§Ù„Ø±Ù‚Ù… {phone}')
     return redirect(url_for('admin'))
 
 
-# ==========================================
-#  خاصية المساعد الذكي (Gemini Chat API)
-# ==========================================
 @app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.get_json(silent=True) or {}
     user_message = data.get('message')
 
     if not user_message:
-        return jsonify({'reply': 'عفواً، لم أستلم أي رسالة.'}), 400
+        return jsonify({'reply': 'Ø¹ÙÙˆØ§Ù‹ØŒ Ù„Ù… Ø£Ø³ØªÙ„Ù… Ø£ÙŠ Ø±Ø³Ø§Ù„Ø©.'}), 400
 
     clean_key = GEMINI_API_KEY.strip() if GEMINI_API_KEY else ''
 
-    # 1. التحقق من صحة مفتاح الـ API وعدم وجود الحروف الافتراضية بالعربية
-    if not clean_key or clean_key == 'ضع_مفتاح_جوجل_هنا' or any(ord(c) > 127 for c in clean_key):
-        print("⚠️ تنبيه: مفتاح GEMINI_API_KEY غير موجود أو يحتوي على حروف غير صحيحة في .env")
+    if not clean_key or clean_key == 'Ø¶Ø¹_Ù…ÙØªØ§Ø­_Ø¬ÙˆØ¬Ù„_Ù‡Ù†Ø§' or any(ord(c) > 127 for c in clean_key):
+        print("âš ï¸ ØªÙ†Ø¨ÙŠÙ‡: Ù…ÙØªØ§Ø­ GEMINI_API_KEY ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ ÙŠØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ø­Ø±ÙˆÙ ØºÙŠØ± ØµØ­ÙŠØ­Ø© ÙÙŠ .env")
         return jsonify({
-            'reply': 'يرجى إضافة مفتاح GEMINI_API_KEY الحقيقي الخاص بك في ملف .env حتى يستطيع المساعد الذكي الإجابة.'
+            'reply': 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¶Ø§ÙØ© Ù…ÙØªØ§Ø­ GEMINI_API_KEY Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ ÙÙŠ Ù…Ù„Ù .env Ø­ØªÙ‰ ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©.'
         }), 400
 
-    # 2. ترميز المفتاح بأمان لتجنب أخطاء الـ URL
     encoded_key = quote(clean_key)
-    
-    # تم التحديث إلى gemini-2.5-flash المتوافق مع حسابك المفعّل
+
     url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={encoded_key}'
     headers = {'Content-Type': 'application/json'}
     payload = {
         'contents': [{
             'parts': [{
                 'text': (
-                    'أنت مساعد ذكي في منصة لتعليم الرسم الهندسي للمهندس أسامة'
-                    ' صادق.\nأجب على هذا السؤال باختصار واحترافية وباللغة'
-                    f' العربية:\nالسؤال: {user_message}'
+                    'Ø£Ù†Øª Ù…Ø³Ø§Ø¹Ø¯ Ø°ÙƒÙŠ ÙÙŠ Ù…Ù†ØµØ© Ù„ØªØ¹Ù„ÙŠÙ… Ø§Ù„Ø±Ø³Ù… Ø§Ù„Ù‡Ù†Ø¯Ø³ÙŠ Ù„Ù„Ù…Ù‡Ù†Ø¯Ø³ Ø£Ø³Ø§Ù…Ø©'
+                    ' ØµØ§Ø¯Ù‚.\nØ£Ø¬Ø¨ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø³Ø¤Ø§Ù„ Ø¨Ø§Ø®ØªØµØ§Ø± ÙˆØ§Ø­ØªØ±Ø§ÙÙŠØ© ÙˆØ¨Ø§Ù„Ù„ØºØ©'
+                    f' Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©:\nØ§Ù„Ø³Ø¤Ø§Ù„: {user_message}'
                 )
             }]
         }]
@@ -215,19 +209,18 @@ def chat():
 
     except urllib.error.HTTPError as http_err:
         error_body = http_err.read().decode('utf-8')
-        print(f"❌ خطأ من سيرفر جوجل (HTTP {http_err.code}): {error_body}")
+        print(f"âŒ Ø®Ø·Ø£ Ù…Ù† Ø³ÙŠØ±ÙØ± Ø¬ÙˆØ¬Ù„ (HTTP {http_err.code}): {error_body}")
         if http_err.code == 404:
             return jsonify({
-                'reply': 'خطأ 404: النموذج غير موجود أو أن المفتاح ينقصه تفعيل الخدمة من Google AI Studio.'
+                'reply': 'Ø®Ø·Ø£ 404: Ø§Ù„Ù†Ù…ÙˆØ°Ø¬ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ Ø£Ù† Ø§Ù„Ù…ÙØªØ§Ø­ ÙŠÙ†Ù‚ØµÙ‡ ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø®Ø¯Ù…Ø© Ù…Ù† Google AI Studio.'
             }), 500
         return jsonify({
-            'reply': f'حدث خطأ من سيرفر جوجل (رمز {http_err.code}). تأكد من صحة مفتاح الـ API.'
+            'reply': f'Ø­Ø¯Ø« Ø®Ø·Ø£ Ù…Ù† Ø³ÙŠØ±ÙØ± Ø¬ÙˆØ¬Ù„ (Ø±Ù…Ø² {http_err.code}). ØªØ£ÙƒØ¯ Ù…Ù† ØµØ­Ø© Ù…ÙØªØ§Ø­ Ø§Ù„Ù€ API.'
         }), 500
 
     except Exception as e:
-        print(f"❌ خطأ في الاتصال بالمساعد الذكي: {e}")
-        return jsonify({'reply': 'عذراً، حدث خطأ أثناء الاتصال بالمساعد الذكي.'}), 500
+        print(f"âŒ Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ: {e}")
+        return jsonify({'reply': 'Ø¹Ø°Ø±Ø§Ù‹ØŒ Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ.'}), 500
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+# âœ… Ù„Ø§ Ù†Ø­ØªØ§Ø¬ app.run() Ø¹Ù„Ù‰ Vercel â€” Vercel ÙŠØ³ØªØ¯Ø¹ÙŠ app Ù…Ø¨Ø§Ø´Ø±Ø©
