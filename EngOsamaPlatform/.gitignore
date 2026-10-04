@@ -1,4 +1,8 @@
 .env
-uploads/
+.env.local
+.vercel
 __pycache__/
 *.pyc
+*.pyo
+.DS_Store
+uploads/
