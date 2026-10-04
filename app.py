@@ -34,12 +34,10 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'super_secret_key_for_eng_osama')
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'Ø¶Ø¹_Ù…ÙØªØ§Ø­_Ø¬ÙˆØ¬Ù„_Ù‡Ù†Ø§')
 
-# âœ… Ø§Ø³ØªØ®Ø¯Ø§Ù… /tmp Ø¹Ù„Ù‰ Vercel (Ø§Ù„Ù…Ø³Ø§Ø± Ø§Ù„ÙˆØ­ÙŠØ¯ Ø§Ù„Ù‚Ø§Ø¨Ù„ Ù„Ù„ÙƒØªØ§Ø¨Ø©)
+# Ø§Ø³ØªØ®Ø¯Ø§Ù… /tmp Ø¹Ù„Ù‰ Vercel (Ø§Ù„Ù…Ø³Ø§Ø± Ø§Ù„ÙˆØ­ÙŠØ¯ Ø§Ù„Ù‚Ø§Ø¨Ù„ Ù„Ù„ÙƒØªØ§Ø¨Ø©)
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', tempfile.gettempdir())
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 Ù…ÙŠØ¬Ø§Ø¨Ø§ÙŠØª
-
-# âœ… Ù„Ø§ Ù†Ø³ØªØ®Ø¯Ù… os.makedirs â€” /tmp Ù…ÙˆØ¬ÙˆØ¯ Ù…Ø³Ø¨Ù‚Ø§Ù‹
 
 users_db = [
     {'name': 'Ø·Ø§Ù„Ø¨ ØªØ¬Ø±ÙŠØ¨ÙŠ', 'phone': '010000000', 'paid': False, 'status': 'pending'}
@@ -71,6 +69,13 @@ def get_file_category(filename):
     elif ext in ['pdf', 'doc', 'docx', 'xls', 'xlsx']:
         return 'doc'
     return 'other'
+
+
+@app.after_request
+def add_charset(response):
+    if response.content_type.startswith('text/html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    return response
 
 
 @app.route('/')
@@ -174,7 +179,7 @@ def chat():
     clean_key = GEMINI_API_KEY.strip() if GEMINI_API_KEY else ''
 
     if not clean_key or clean_key == 'Ø¶Ø¹_Ù…ÙØªØ§Ø­_Ø¬ÙˆØ¬Ù„_Ù‡Ù†Ø§' or any(ord(c) > 127 for c in clean_key):
-        print("âš ï¸ ØªÙ†Ø¨ÙŠÙ‡: Ù…ÙØªØ§Ø­ GEMINI_API_KEY ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ ÙŠØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ø­Ø±ÙˆÙ ØºÙŠØ± ØµØ­ÙŠØ­Ø© ÙÙŠ .env")
+        print("ØªÙ†Ø¨ÙŠÙ‡: Ù…ÙØªØ§Ø­ GEMINI_API_KEY ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ ÙŠØ­ØªÙˆÙŠ Ø¹Ù„Ù‰ Ø­Ø±ÙˆÙ ØºÙŠØ± ØµØ­ÙŠØ­Ø© ÙÙŠ .env")
         return jsonify({
             'reply': 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¶Ø§ÙØ© Ù…ÙØªØ§Ø­ GEMINI_API_KEY Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ ÙÙŠ Ù…Ù„Ù .env Ø­ØªÙ‰ ÙŠØ³ØªØ·ÙŠØ¹ Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ Ø§Ù„Ø¥Ø¬Ø§Ø¨Ø©.'
         }), 400
@@ -209,7 +214,7 @@ def chat():
 
     except urllib.error.HTTPError as http_err:
         error_body = http_err.read().decode('utf-8')
-        print(f"âŒ Ø®Ø·Ø£ Ù…Ù† Ø³ÙŠØ±ÙØ± Ø¬ÙˆØ¬Ù„ (HTTP {http_err.code}): {error_body}")
+        print(f"Ø®Ø·Ø£ Ù…Ù† Ø³ÙŠØ±ÙØ± Ø¬ÙˆØ¬Ù„ (HTTP {http_err.code}): {error_body}")
         if http_err.code == 404:
             return jsonify({
                 'reply': 'Ø®Ø·Ø£ 404: Ø§Ù„Ù†Ù…ÙˆØ°Ø¬ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø£Ùˆ Ø£Ù† Ø§Ù„Ù…ÙØªØ§Ø­ ÙŠÙ†Ù‚ØµÙ‡ ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø®Ø¯Ù…Ø© Ù…Ù† Google AI Studio.'
@@ -219,8 +224,5 @@ def chat():
         }), 500
 
     except Exception as e:
-        print(f"âŒ Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ: {e}")
+        print(f"Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ: {e}")
         return jsonify({'reply': 'Ø¹Ø°Ø±Ø§Ù‹ØŒ Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒÙŠ.'}), 500
-
-
-# âœ… Ù„Ø§ Ù†Ø­ØªØ§Ø¬ app.run() Ø¹Ù„Ù‰ Vercel â€” Vercel ÙŠØ³ØªØ¯Ø¹ÙŠ app Ù…Ø¨Ø§Ø´Ø±Ø©
